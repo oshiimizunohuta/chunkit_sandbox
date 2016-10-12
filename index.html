@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<title>TODO supply a title</title>
+		<meta charset="UTF-8">
+		<meta name="viewport" content="width=device-width, initial-scale=1.0">
+		<link href="./style.css" rel="stylesheet" type="text/css" />
+		<script src="./chunklekit/canvasdraw.js"></script>
+		<script src="./chunklekit/wordprint.js"></script>
+		<script src="./chunklekit/util.js"></script>
+		<script src="./chunklekit/prop.js"></script>
+	</head>
+	<body>
+		<!--<script type="javascript" src="https://raw.githubusercontent.com/oshiimizunohuta/chunklekit/master/wordprint.js"></script>
+		-->
+		<script>
+			var wp;
+			var INPUT;
+			var color = {fg: "", bg: ""};
+			DISPLAY_WIDTH = 192;
+			DISPLAY_HEIGHT = 160;
+
+			addEventListener('load', function (e) {
+				var R = imageResource
+					, setEvent = function(name, func){
+						Array.prototype.forEach.call(document.querySelectorAll('input[name="' + name + '"]')
+						, function(a){
+							a.addEventListener('change', func);
+						});
+					}
+				;
+				UI_SCREEN_ID = 'screen';
+				makeCanvasScroll('screen', 'display');
+				makeCanvasScroll('tmp', 'display');
+//				R.dirpath = 'http://jsrun.it/assets/';
+				loadImages([[WORDPRINT_FONT4V6PX, 4, 6], [WORDPRINT_FONT8PX, 8, 8], [WORDPRINT_FONT12PX, 12, 12]], function () {
+					INPUT = document.getElementsByTagName('textarea')[0];
+					init();
+
+					INPUT.addEventListener('keyup', refresh, false);
+
+					setEvent('size', changeSize);
+
+					setEvent('color', changeColor);
+					setEvent('bgcolor', changeBGColor);
+
+					setEvent('mark', changeMark);
+					
+					setEvent('cols', changeCols);
+					setEvent('rows', changeRows);
+//					document.querySelectorAll('input[name="rows"]')[0].addEventListener('change', changeRows);
+				});
+
+
+			}, false);
+			function changeCols(e) {
+				wp.setLineCols(e.target.value);
+				refresh(INPUT);
+			}
+			function changeRows(e) {
+				wp.setMaxRows(e.target.value);
+				refresh(INPUT);
+			}
+			function changeMark(e) {
+				wp.setMarkAlign(e.target.value);
+				refresh(INPUT);
+			}
+			function changeSize(e) {
+				wp.setFontSize(e.target.value);
+				refresh(INPUT);
+			}
+
+			function changeColor(e) {
+				color.fg = makeColorArray(e.target.value);
+				wp.setColor(color.fg, wp.bgColor);
+				refresh(INPUT);
+			}
+
+			function changeBGColor(e) {
+				color.bg = makeColorArray(e.target.value);
+				wp.setColor(wp.color, color.bg);
+				refresh(INPUT);
+			}
+
+			function makeColorArray(str)
+			{
+				var a = str.slice(1).split(/([0-9a-fA-F]{2})/).filter(Boolean).concat("255");
+				return a.map(function (b) {
+					return parseInt(b, 16);
+				});
+			}
+
+			function refresh(e) {
+				var text = e.target != null ? e.target.value : e.value;
+				scrollByName('tmp').clear(COLOR_BLACK);
+				wp.setColor(color.fg, color.bg);
+				wp.print(text.replace(/\n/g, "$n"), 10, 10);
+				drawCanvasStacks(text.length * 2);
+				screenView(scrollByName('screen'), scrollByName('tmp'), VIEWMULTI);
+			}
+
+			function init() {
+				wp = new WordPrint()
+				wp.init('8px');
+				//    wp.setFontSize('8px');
+				wp.rowSpace = 0;
+				wp.setScroll(scrollByName('tmp'));
+				color.fg = wp.color;
+				color.bg = wp.bgColor;
+				refresh(INPUT);
+
+			}
+
+		</script>
+		<header>
+			【chunklekit】wordprint.jsテスト
+		</header>
+		<div id="display" class="display center">
+		</div>
+		<textarea>もじをいれてね！</textarea>
+		<ul>
+			<li>FONT SIZE: 
+				<label><input type="radio" value="4v6px" name="size" >4px</label>
+				<label><input type="radio" value="8px" name="size" checked="checked" >8px</label>
+				<label><input type="radio" value="12px" name="size" >12px</label>
+			</li>    
+			<li>
+				<label>COLOR: <input type="color" value="#ffffff" name="color"></label>
+				<label>BGCOLOR: <input type="color" value="#ffffff" name="bgcolor"></label>
+			</li>
+			<li>MARK ALIGN:
+				<label><input type="radio" value="vertical" name="mark">Vertical</label>
+				<label><input type="radio" value="horizon" name="mark">Horizon</label>
+			</li>
+			<li>LINE COLS NUM:
+				<label><input type="text" value="0" name="cols"></label>
+			</li>
+			<li>MAX ROWS NUM:
+				<label><input type="text" value="0" name="rows"></label>
+			</li>
+		</ul>
+	</body>
+</html>
