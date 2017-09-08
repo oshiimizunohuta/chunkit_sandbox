@@ -5,20 +5,22 @@
 		<meta charset="UTF-8">
 		<meta name="viewport" content="width=device-width, initial-scale=1.0">
 		<link href="./style.css" rel="stylesheet" type="text/css" />
+		<script src="./chunklekit/prop.js"></script>
 		<script src="./chunklekit/canvasdraw.js"></script>
 		<script src="./chunklekit/wordprint.js"></script>
 		<script src="./chunklekit/util.js"></script>
-		<script src="./chunklekit/prop.js"></script>
 	</head>
 	<body>
 		<!--<script type="javascript" src="https://raw.githubusercontent.com/oshiimizunohuta/chunklekit/master/wordprint.js"></script>
 		-->
 		<script>
-			var wp;
-			var INPUT;
-			var color = {fg: "", bg: ""};
-			DISPLAY_WIDTH = 192;
-			DISPLAY_HEIGHT = 160;
+			var wp
+				, INPUT
+				, color = {fg: "", bg: ""}
+				, ssFunc
+			;
+			DISPLAY_WIDTH = 256;
+			DISPLAY_HEIGHT = 128;
 
 			addEventListener('load', function (e) {
 				var R = imageResource
@@ -50,6 +52,38 @@
 					setEvent('rows', changeRows);
 //					document.querySelectorAll('input[name="rows"]')[0].addEventListener('change', changeRows);
 				});
+				
+				ssFunc = function(img) {
+						//別ウィンドウに表示
+						element_img = document.createElement("img");
+						element_a = document.createElement("a");
+						del_a = document.createElement("a");
+						pair = document.createElement("span");
+						element_img.setAttribute("src", img.src);
+						element_img.setAttribute("width", "96px");
+//						element_a.setAttribute("href", "javascript:window.open('" + img.src +"'); ");
+						del_a.setAttribute("onclick", "SSImgRemove(this)");
+						del_a.innerHTML = '<a href="javascript:void(0);">X</a>';
+						
+						element_a.appendChild(element_img);
+						pair.appendChild(del_a);
+						pair.appendChild(element_a);
+						
+						document.getElementById('output').appendChild(pair);
+				};
+				
+				document.getElementById('ssx1').onclick = function(){
+					var img = scrollByName('tmp').screenShot();
+					img.onload = function(){
+						ssFunc(img);
+					};
+				};
+				document.getElementById('ssx2').onclick = function(){
+					var img = scrollByName('screen').screenShot();
+					img.onload = function(){
+						ssFunc(img);
+					};
+				}
 
 
 			}, false);
@@ -94,7 +128,7 @@
 				var text = e.target != null ? e.target.value : e.value;
 				scrollByName('tmp').clear(COLOR_BLACK);
 				wp.setColor(color.fg, color.bg);
-				wp.print(text.replace(/\n/g, "$n"), 10, 10);
+				wp.print(text.replace(/\n/g, "$n"), wp.chipSize, wp.vChipSize);
 				drawCanvasStacks(text.length * 2);
 				screenView(scrollByName('screen'), scrollByName('tmp'), VIEWMULTI);
 			}
@@ -113,7 +147,7 @@
 
 		</script>
 		<header>
-			【chunklekit】wordprint.jsテスト
+			【chunklekit】PixWordPrinter
 		</header>
 		<div id="display" class="display center">
 		</div>
@@ -138,6 +172,11 @@
 			<li>MAX ROWS NUM:
 				<label><input type="text" value="0" name="rows"></label>
 			</li>
+			<li>スクリーンショット:
+				<input type="button" id="ssx1" value="画像x1" />　<input type="button" id="ssx2" value="画像x2" />
+			</li>
 		</ul>
+		<div id="output" class="center">
+		</div>
 	</body>
 </html>
