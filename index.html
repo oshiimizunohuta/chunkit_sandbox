@@ -1,41 +1,47 @@
 <!DOCTYPE html>
-<html>
+<html lang="ja">
 	<head>
 		<title>PixWordPrinter</title>
 		<meta charset="UTF-8">
 		<meta name="viewport" content="width=device-width, initial-scale=1.0">
 		<link href="./style.css" rel="stylesheet" type="text/css" />
-		<script src="./chunklekit/prop.js"></script>
-		<script src="./chunklekit/canvasdraw.js"></script>
-		<script src="./chunklekit/wordprint.js"></script>
-		<script src="./chunklekit/util.js"></script>
 	</head>
 	<body>
 		<!--<script type="javascript" src="https://raw.githubusercontent.com/oshiimizunohuta/chunklekit/master/wordprint.js"></script>
 		-->
-		<script>
-			var wp
-				, INPUT
-				, color = {fg: "", bg: ""}
-				, ssFunc
-			;
-			DISPLAY_WIDTH = 256;
-			DISPLAY_HEIGHT = 128;
-
+		<script type="module">
+			import {makeSpriteQuery, makeSpriteSwapColor, cellhto, makeCanvasScroll, getScrolls, preLoadImages, loadImages, getResourceChipSize, scrollByName, drawCanvasStacks, screenView, screenScale, SpriteQueryCanvas, getDisplaySize} from './chunklekit/canvasdraw.js';
+			import WordPrint from './chunklekit/wordprint.js';
+			import * as util from './chunklekit/util.js';
+			import * as props from './chunklekit/prop.js';
+			
+			for(let i in props){
+				window[i] = props[i];
+			}
+			
+			for(let i in util){
+				window[i] = util[i];
+			}
+			
 			addEventListener('load', function (e) {
-				var R = imageResource
-					, setEvent = function(name, func){
+				let wp, wp_12, wp_8v16p_p, wp_com
+					, INPUT
+					, color = {fg: "", bg: ""}
+					, ssFunc
+					, FONTSIZE = '8px'
+				;
+				let setEvent = function(name, func){
 						Array.prototype.forEach.call(document.querySelectorAll('input[name="' + name + '"]')
 						, function(a){
 							a.addEventListener('change', func);
 						});
 					}
 				;
-				UI_SCREEN_ID = 'screen';
+//				UI_SCREEN_ID = 'screen';
 				makeCanvasScroll('screen', 'display');
 				makeCanvasScroll('tmp', 'display');
 //				R.dirpath = 'http://jsrun.it/assets/';
-				loadImages([[WORDPRINT_FONT4V6PX, 4, 6], [WORDPRINT_FONT8PX, 8, 8], [WORDPRINT_FONT12PX, 12, 12]], function () {
+				loadImages([[WORDPRINT_FONT4V6PX, 4, 6], [WORDPRINT_FONT8PX, 8, 8], ['font_12p', 12, 12], ['font_8v16p_p', 8, 16]], function () {
 					INPUT = document.getElementsByTagName('textarea')[0];
 					init();
 
@@ -86,7 +92,6 @@
 				}
 
 
-			}, false);
 			function changeCols(e) {
 				wp.setLineCols(e.target.value);
 				refresh(INPUT);
@@ -100,7 +105,15 @@
 				refresh(INPUT);
 			}
 			function changeSize(e) {
-				wp.setFontSize(e.target.value);
+				if(e.target.value == '8px' || e.target.value == '4v6px' ){
+					wp = wp_com;
+					wp.setFontSize(e.target.value);
+				}else if(e.target.value == '12px'){
+					wp = wp_12;
+				}else if(e.target.value == '8v16px'){
+					wp = wp_8v16p_p;
+				}
+						
 				refresh(INPUT);
 			}
 
@@ -134,16 +147,47 @@
 			}
 
 			function init() {
-				wp = new WordPrint()
+				wp_com = new WordPrint();
+				wp = wp_com;
 				wp.init('8px');
 				//    wp.setFontSize('8px');
 				wp.rowSpace = 0;
 				wp.setScroll(scrollByName('tmp'));
 				color.fg = wp.color;
 				color.bg = wp.bgColor;
+				
+				wp_12 = new WordPrint();
+				wp_12.initWith('12p', 
+					'あいうえおかきくけこさしすせそたちつてとなにぬねのはひふへほまみむめもやっゆ⼀よらりるれろわ、を。んがぎぐげござじずぜぞだぢづでどばびぶべぼぱぴぷぺぽぁぃぅぇぉゃ！ゅ？ょ・「」○×'
+					 + 'アイウエオカキクケコサシスセソタチツテトナニヌネノハヒフヘホマミムメモヤッユ～ヨラリルレロワ☆ヲ♥ンガギグゲゴザジズゼゾダヂヅデドバビブベボパピプペポァィゥェォャ（ュ）ョ=+-*/'
+					 + 'ABCDEFGHIJKLMNOPQRSTUVWXYZ,.:;abcdefghijklmnopqrstuvwxyz ^&©0123456789'
+				);
+				wp_12.NOTFOUND_WORD = '？';
+				wp_12.setScroll(scrollByName('tmp'));
+				wp_12.SPACE_CODE = 236; //' '
+				wp_12.NOTFOUND_CODE = 83; //'？'
 				refresh(INPUT);
 
+
+				wp_8v16p_p = new WordPrint();
+				wp_8v16p_p.initWith('8v16p_p', 
+					 'ABCDEFGHIJKLMNOP'
+					+ 'QRSTUVWXYZ012345'
+					+ '6789 !?+-/%:↑↓→←'
+					+ '&' + '               '
+					+ 'ＡＢＣＤＥＦＧＨＩＪＫＬＭＮＯＰ'
+					+ 'ＱＲＳＴＵＶＷＸＹＺ０１２３４５'
+					+ '６７８９　！？＋－／％：⇧⇩⇨⇦'
+					+ '＆' + '　　　　　　　　　　　　　　　'
+				);
+				wp_8v16p_p.NOTFOUND_WORD = '?';
+				wp_8v16p_p.SPACE_CODE = 36; //' '
+				wp_8v16p_p.NOTFOUND_CODE = 38; //'？'
+				wp_8v16p_p.setScroll(scrollByName('tmp'));
+				refresh(INPUT);
 			}
+		}, false);
+
 
 		</script>
 		<header>
@@ -157,6 +201,7 @@
 				<label><input type="radio" value="4v6px" name="size" >4px</label>
 				<label><input type="radio" value="8px" name="size" checked="checked" >8px</label>
 				<label><input type="radio" value="12px" name="size" >12px</label>
+				<label><input type="radio" value="8v16px" name="size" >8v16px</label>
 			</li>    
 			<li>
 				<label>COLOR: <input type="color" value="#ffffff" name="color"></label>
